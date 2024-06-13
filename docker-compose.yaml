@@ -1,0 +1,41 @@
+services:
+  django:
+    container_name: djangoapp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: "python manage.py runserver 0.0.0.0:8001"
+    volumes:
+      - ./:/usr/src/app/
+    ports:
+      - 8001:8001
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-3#*9p=u5l#(_1w#+g=2vu0cd1zf^b(01@2gs4*5j1m1e12ueoz
+      - ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7.4-rc
+
+  celery:
+    container_name: celeryworker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A dcelery worker --loglevel=info
+    volumes:
+      - ./:/usr/src/app/
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-3#*9p=u5l#(_1w#+g=2vu0cd1zf^b(01@2gs4*5j1m1e12ueoz
+      - ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+
+
